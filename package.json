@@ -1,6 +1,6 @@
 {
   "name": "pc-timer",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "20 minute PC timer",
   "main": "main.js",
   "author": "Anthony Meszaros",
@@ -18,15 +18,15 @@
   "build": {
     "appId": "com.anthony.pctimer",
     "productName": "PC Timer",
-"files": [
-  "**/*",
-  "!out{,/**}",
-  "!release{,/**}",
-  "!release*{,/**}",
-  "!dist{,/**}",
-  "!dist*{,/**}",
-  "!firebase-service-account.json"
-],
+    "files": [
+      "**/*",
+      "!out{,/**}",
+      "!release{,/**}",
+      "!release*{,/**}",
+      "!dist{,/**}",
+      "!dist*{,/**}",
+      "!firebase-service-account.json"
+    ],
     "publish": [
       {
         "provider": "github",
