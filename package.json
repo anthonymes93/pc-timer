@@ -1,40 +1,45 @@
 {
   "name": "pc-timer",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "20 minute PC timer",
   "main": "main.js",
+  "author": "Anthony Meszaros",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.2"
   },
   "devDependencies": {
     "electron": "^38.0.0",
     "electron-builder": "^26.0.12"
   },
-"build": {
-  "appId": "com.anthony.pctimer",
-  "productName": "PC Timer",
-  "publish": [
-    {
-      "provider": "github",
-      "owner": "anthonymes93",
-      "repo": "pc-timer"
-    }
-  ],
-  "win": {
-    "target": "nsis"
-  },
-  "nsis": {
-    "oneClick": false,
-    "allowToChangeInstallationDirectory": true
-  }
-},
+  "build": {
+    "appId": "com.anthony.pctimer",
+    "productName": "PC Timer",
+    "files": [
+      "**/*",
+      "!release{,/**}",
+      "!release2{,/**}",
+      "!dist{,/**}",
+      "!dist2{,/**}",
+      "!dist3{,/**}",
+      "!node_modules/.cache{,/**}"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "anthonymes93",
+        "repo": "pc-timer"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     }
-  },
-  "dependencies": {
-    "electron-updater": "^6.8.3"
   }
 }

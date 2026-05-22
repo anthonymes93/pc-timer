@@ -3,32 +3,39 @@ const { autoUpdater } = require("electron-updater");
 
 let popupWindows = [];
 let lastTriggered = "";
+let isClosingAll = false;
 
 function closeAllPopups() {
-  popupWindows.forEach((win) => {
+  if (isClosingAll) return;
+
+  isClosingAll = true;
+
+  const windows = [...popupWindows];
+  popupWindows = [];
+
+  windows.forEach((win) => {
     if (win && !win.isDestroyed()) {
       win.close();
     }
   });
 
-  popupWindows = [];
+  isClosingAll = false;
 }
 
-function createPopup(display, message, subtitle) {
-  const { x, y, width, height } = display.workArea;
-
-  const popupWidth = 460;
-  const popupHeight = 260;
+function createFullscreenPopup(display, screenNumber, message, subtitle) {
+  const { x, y, width, height } = display.bounds;
 
   const win = new BrowserWindow({
-    width: popupWidth,
-    height: popupHeight,
-    x: Math.round(x + width / 2 - popupWidth / 2),
-    y: Math.round(y + height / 2 - popupHeight / 2),
-    frame: true,
+    x,
+    y,
+    width,
+    height,
+    frame: false,
+    fullscreen: true,
     resizable: false,
     alwaysOnTop: true,
     skipTaskbar: false,
+    backgroundColor: "#020617",
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -36,50 +43,89 @@ function createPopup(display, message, subtitle) {
   });
 
   win.setAlwaysOnTop(true, "screen-saver");
+  win.setMenuBarVisibility(false);
 
   win.on("closed", () => {
-    closeAllPopups();
+    if (!isClosingAll) {
+      closeAllPopups();
+    }
   });
 
   const html = `
     <html>
       <body style="
         margin:0;
-        font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-        background:linear-gradient(135deg, #111827, #1f2937);
-        color:white;
+        width:100vw;
         height:100vh;
+        overflow:hidden;
+        background:
+          radial-gradient(circle at top left, rgba(99,102,241,0.28), transparent 34%),
+          radial-gradient(circle at bottom right, rgba(14,165,233,0.22), transparent 38%),
+          linear-gradient(135deg, #020617, #111827);
+        color:white;
+        font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
         display:flex;
         align-items:center;
         justify-content:center;
-        overflow:hidden;
       ">
         <div style="
-          width:86%;
-          padding:26px;
-          border-radius:24px;
+          width:min(760px, 86vw);
+          padding:54px;
+          border-radius:34px;
           background:rgba(255,255,255,0.08);
           border:1px solid rgba(255,255,255,0.18);
-          box-shadow:0 25px 60px rgba(0,0,0,0.45);
+          box-shadow:0 40px 120px rgba(0,0,0,0.55);
           text-align:center;
-          backdrop-filter:blur(18px);
+          backdrop-filter:blur(22px);
         ">
-          <div style="font-size:34px;margin-bottom:12px;">⏱️</div>
-          <h1 style="margin:0 0 8px;font-size:28px;">${message}</h1>
-          <p style="margin:0 0 22px;color:rgba(255,255,255,0.72);font-size:15px;">
+          <div style="
+            display:inline-flex;
+            padding:10px 18px;
+            border-radius:999px;
+            background:rgba(255,255,255,0.12);
+            color:rgba(255,255,255,0.75);
+            font-weight:800;
+            letter-spacing:0.08em;
+            font-size:13px;
+            margin-bottom:22px;
+            text-transform:uppercase;
+          ">
+            Screen ${screenNumber}
+          </div>
+
+          <div style="font-size:62px;margin-bottom:18px;">⏱️</div>
+
+          <h1 style="
+            margin:0 0 14px;
+            font-size:56px;
+            line-height:1;
+            letter-spacing:-1.8px;
+          ">
+            ${message}
+          </h1>
+
+          <p style="
+            margin:0 auto 34px;
+            max-width:560px;
+            color:rgba(255,255,255,0.72);
+            font-size:21px;
+            line-height:1.45;
+          ">
             ${subtitle}
           </p>
+
           <button onclick="window.close()" style="
             border:none;
             border-radius:999px;
-            padding:12px 24px;
+            padding:18px 34px;
             background:white;
-            color:#111827;
-            font-size:14px;
-            font-weight:700;
+            color:#020617;
+            font-size:17px;
+            font-weight:900;
             cursor:pointer;
+            box-shadow:0 18px 50px rgba(0,0,0,0.35);
           ">
-            Got it
+            Got it — close all screens
           </button>
         </div>
 
@@ -95,45 +141,6 @@ function createPopup(display, message, subtitle) {
 
   win.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(html));
 
-  setTimeout(() => {
-    if (!win || win.isDestroyed()) return;
-
-    const bounds = win.getBounds();
-    const originalX = bounds.x;
-    const originalY = bounds.y;
-
-    let shakes = 0;
-
-    const shakeInterval = setInterval(() => {
-      if (!win || win.isDestroyed()) {
-        clearInterval(shakeInterval);
-        return;
-      }
-
-      win.setBounds({
-        x: originalX + Math.round(Math.random() * 20 - 10),
-        y: originalY + Math.round(Math.random() * 20 - 10),
-        width: bounds.width,
-        height: bounds.height
-      });
-
-      shakes++;
-
-      if (shakes > 20) {
-        clearInterval(shakeInterval);
-
-        if (win && !win.isDestroyed()) {
-          win.setBounds({
-            x: originalX,
-            y: originalY,
-            width: bounds.width,
-            height: bounds.height
-          });
-        }
-      }
-    }, 40);
-  }, 500);
-
   popupWindows.push(win);
 }
 
@@ -142,8 +149,8 @@ function showPopupsOnAllScreens(message, subtitle) {
 
   const displays = screen.getAllDisplays();
 
-  displays.forEach((display) => {
-    createPopup(display, message, subtitle);
+  displays.forEach((display, index) => {
+    createFullscreenPopup(display, index + 1, message, subtitle);
   });
 }
 
@@ -167,27 +174,39 @@ function checkTime() {
     if (minutes === 0) {
       showPopupsOnAllScreens(
         "STOP COMPUTER TIME",
-        "Time to get off the computer and take a real break."
+        "Step away now. Protect your focus and reset."
       );
     }
   }
 }
 
-app.whenReady().then(() => {
-    autoUpdater.checkForUpdatesAndNotify();
-
-autoUpdater.on("update-downloaded", () => {
-  dialog.showMessageBox({
-    type: "info",
-    title: "Update Ready",
-    message: "A new version of PC Timer has been downloaded.",
-    buttons: ["Update now and restart", "Later"]
-  }).then((result) => {
-    if (result.response === 0) {
-      autoUpdater.quitAndInstall();
-    }
+function setupUpdater() {
+  autoUpdater.on("update-downloaded", () => {
+    dialog
+      .showMessageBox({
+        type: "info",
+        title: "Update Ready",
+        message: "A new version of PC Timer has been downloaded.",
+        buttons: ["Update now and restart", "Later"]
+      })
+      .then((result) => {
+        if (result.response === 0) {
+          autoUpdater.quitAndInstall();
+        }
+      });
   });
-});
+
+  autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+}
+
+app.whenReady().then(() => {
+  showPopupsOnAllScreens(
+    "APP OPENEDDD",
+    "If you see this, the app is running. This is a temporary test popup."
+  );
+
+  setupUpdater();
+
   checkTime();
   setInterval(checkTime, 1000);
 });
