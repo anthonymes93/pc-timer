@@ -28,13 +28,14 @@
       "!dist*{,/**}",
       "!node_modules/.cache{,/**}"
     ],
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "anthonymes93",
-        "repo": "pc-timer"
-      }
-    ],
+"publish": [
+  {
+    "provider": "github",
+    "owner": "anthonymes93",
+    "repo": "pc-timer",
+    "releaseType": "release"
+  }
+],
     "win": {
       "target": "nsis"
     },
