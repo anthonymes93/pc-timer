@@ -1,12 +1,47 @@
 const { app, BrowserWindow, screen, dialog } = require("electron");
 const { autoUpdater } = require("electron-updater");
+const { db, doc, onSnapshot } = require("./firebase");
 
 let popupWindows = [];
+let controlPanelWindow;
 let lastTriggered = "";
 let isClosingAll = false;
 
+const DASHBOARD_URL = "http://localhost:5174/";
+
+let settings = {
+  enabled: true,
+  startMinute: 40,
+  stopMinute: 0,
+  startTitle: "START COMPUTER TIME",
+  startMessage: "You have 20 minutes. Use the computer intentionally.",
+  stopTitle: "STOP COMPUTER TIME",
+  stopMessage: "Step away now. Protect your focus and reset.",
+  showTestOnOpen: false
+};
+
+function openControlPanel() {
+  if (controlPanelWindow && !controlPanelWindow.isDestroyed()) {
+    controlPanelWindow.focus();
+    return;
+  }
+
+  controlPanelWindow = new BrowserWindow({
+    width: 1100,
+    height: 900,
+    backgroundColor: "#0f172a",
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true
+    }
+  });
+
+  controlPanelWindow.loadURL(DASHBOARD_URL);
+}
+
 function closeAllPopups() {
   if (isClosingAll) return;
+
   isClosingAll = true;
 
   const windows = [...popupWindows];
@@ -51,30 +86,23 @@ function createFullscreenPopup(display, screenNumber, message, subtitle) {
   win.setAlwaysOnTop(true, "screen-saver");
 
   win.on("closed", () => {
-    if (!isClosingAll) {
-      closeAllPopups();
-    }
+    if (!isClosingAll) closeAllPopups();
   });
 
   const html = `
     <html>
       <body style="
-        margin:0;
-        width:100vw;
-        height:100vh;
-        overflow:hidden;
+        margin:0;width:100vw;height:100vh;overflow:hidden;
         background:
           radial-gradient(circle at top left, rgba(99,102,241,0.28), transparent 34%),
           radial-gradient(circle at bottom right, rgba(14,165,233,0.22), transparent 38%),
           linear-gradient(135deg, #020617, #111827);
         color:white;
-        font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-        display:flex;
-        align-items:center;
-        justify-content:center;
+        font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+        display:flex;align-items:center;justify-content:center;
       ">
         <div style="
-          width:min(760px, 86vw);
+          width:min(760px,86vw);
           padding:54px;
           border-radius:34px;
           background:rgba(255,255,255,0.08);
@@ -133,13 +161,6 @@ function createFullscreenPopup(display, screenNumber, message, subtitle) {
             Got it — close all screens
           </button>
         </div>
-
-        <script>
-          const audio = new Audio(
-            "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAAAA"
-          );
-          audio.play().catch(() => {});
-        </script>
       </body>
     </html>
   `;
@@ -159,36 +180,55 @@ function createFullscreenPopup(display, screenNumber, message, subtitle) {
 function showPopupsOnAllScreens(message, subtitle) {
   closeAllPopups();
 
-  const displays = screen.getAllDisplays();
-
-  displays.forEach((display, index) => {
+  screen.getAllDisplays().forEach((display, index) => {
     createFullscreenPopup(display, index + 1, message, subtitle);
   });
 }
 
 function checkTime() {
+  if (!settings.enabled) return;
+
   const now = new Date();
   const minutes = now.getMinutes();
   const hour = now.getHours();
   const triggerKey = `${hour}:${minutes}`;
 
-  if ((minutes === 0 || minutes === 40) && lastTriggered !== triggerKey) {
+  if (
+    (minutes === settings.startMinute || minutes === settings.stopMinute) &&
+    lastTriggered !== triggerKey
+  ) {
     lastTriggered = triggerKey;
 
-    if (minutes === 40) {
-      showPopupsOnAllScreens(
-        "START COMPUTER TIME",
-        "You have 20 minutes. Use the computer intentionally."
-      );
+    if (minutes === settings.startMinute) {
+      showPopupsOnAllScreens(settings.startTitle, settings.startMessage);
     }
 
-    if (minutes === 0) {
-      showPopupsOnAllScreens(
-        "STOP COMPUTER TIME",
-        "Step away now. Protect your focus and reset."
-      );
+    if (minutes === settings.stopMinute) {
+      showPopupsOnAllScreens(settings.stopTitle, settings.stopMessage);
     }
   }
+}
+
+function setupFirebaseSettings() {
+  const settingsRef = doc(db, "settings", "pcTimer");
+
+  onSnapshot(settingsRef, (snapshot) => {
+    if (!snapshot.exists()) return;
+
+    settings = {
+      ...settings,
+      ...snapshot.data()
+    };
+
+    console.log("Firebase settings updated:", settings);
+
+    if (settings.showTestOnOpen) {
+      showPopupsOnAllScreens(
+        "FIREBASE CONNECTED",
+        "Your popup settings are now controlled by Firestore."
+      );
+    }
+  });
 }
 
 function setupUpdater() {
@@ -211,11 +251,8 @@ function setupUpdater() {
 }
 
 app.whenReady().then(() => {
-  showPopupsOnAllScreens(
-    "APP OPENED",
-    "If you see this, the app is running."
-  );
-
+  openControlPanel();
+  setupFirebaseSettings();
   setupUpdater();
 
   checkTime();

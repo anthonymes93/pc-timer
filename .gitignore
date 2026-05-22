@@ -3,3 +3,4 @@ out/
 release*
 dist*
 node_modules
+firebase-service-account.json
