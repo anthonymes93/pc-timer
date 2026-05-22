@@ -59,7 +59,7 @@ export default function App() {
   return (
     <div style={styles.page}>
       <div style={styles.container}>
-        <h1 style={styles.title}>PC Timer Dashboard23</h1>
+        <h1 style={styles.title}>PC Timer Dashboard234</h1>
         <p style={styles.subtitle}>
           Control your Electron popup timer from anywhere.
         </p>
