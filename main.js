@@ -201,7 +201,7 @@ function setupUpdater() {
 
 app.whenReady().then(() => {
   showPopupsOnAllScreens(
-    "APP OPENEDDD234",
+    "APP OPENEDDD234WORKED",
     "If you see this, the app is running. This is a temporary test popup."
   );
 
