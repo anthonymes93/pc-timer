@@ -1,6 +1,6 @@
 {
   "name": "pc-timer",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "20 minute PC timer",
   "main": "main.js",
   "author": "Anthony Meszaros",
@@ -28,14 +28,14 @@
       "!dist*{,/**}",
       "!node_modules/.cache{,/**}"
     ],
-"publish": [
-  {
-    "provider": "github",
-    "owner": "anthonymes93",
-    "repo": "pc-timer",
-    "releaseType": "release"
-  }
-],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "anthonymes93",
+        "repo": "pc-timer",
+        "releaseType": "release"
+      }
+    ],
     "win": {
       "target": "nsis"
     },
