@@ -14,7 +14,6 @@
 "build": {
   "appId": "com.anthony.pctimer",
   "productName": "PC Timer",
-
   "publish": [
     {
       "provider": "github",
@@ -22,11 +21,9 @@
       "repo": "pc-timer"
     }
   ],
-
   "win": {
     "target": "nsis"
   },
-
   "nsis": {
     "oneClick": false,
     "allowToChangeInstallationDirectory": true
