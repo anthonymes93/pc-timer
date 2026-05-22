@@ -1,4 +1,5 @@
-const { app, BrowserWindow, screen } = require("electron");
+const { app, BrowserWindow, screen, dialog } = require("electron");
+const { autoUpdater } = require("electron-updater");
 
 let popupWindows = [];
 let lastTriggered = "";
@@ -173,6 +174,20 @@ function checkTime() {
 }
 
 app.whenReady().then(() => {
+    autoUpdater.checkForUpdatesAndNotify();
+
+autoUpdater.on("update-downloaded", () => {
+  dialog.showMessageBox({
+    type: "info",
+    title: "Update Ready",
+    message: "A new version of PC Timer has been downloaded.",
+    buttons: ["Update now and restart", "Later"]
+  }).then((result) => {
+    if (result.response === 0) {
+      autoUpdater.quitAndInstall();
+    }
+  });
+});
   checkTime();
   setInterval(checkTime, 1000);
 });
