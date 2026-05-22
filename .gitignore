@@ -1,7 +1,5 @@
-node_modules
-dist
-dist2
-dist3
-release
-release4
+out
+out/
 release*
+dist*
+node_modules

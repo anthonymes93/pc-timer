@@ -18,15 +18,16 @@
   "build": {
     "appId": "com.anthony.pctimer",
     "productName": "PC Timer",
-    "files": [
-      "**/*",
-      "!release{,/**}",
-      "!release2{,/**}",
-      "!dist{,/**}",
-      "!dist2{,/**}",
-      "!dist3{,/**}",
-      "!node_modules/.cache{,/**}"
-    ],
+"files": [
+  "**/*",
+  "!out{,/**}",
+  "!release{,/**}",
+  "!release*{,/**}",
+  "!release-build{,/**}",
+  "!dist{,/**}",
+  "!dist*{,/**}",
+  "!node_modules/.cache{,/**}"
+],
     "publish": [
       {
         "provider": "github",
