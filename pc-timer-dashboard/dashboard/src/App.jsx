@@ -56,6 +56,7 @@ export default function App() {
   return (
     <div className="page">
       <TitleBar />
+      <UpdateBanner />
       <div className="container">
         <div className="header">
           <div>
@@ -197,6 +198,32 @@ function TextArea({ label, value, onChange }) {
         onChange={(e) => onChange(e.target.value)}
         className="field-textarea"
       />
+    </div>
+  );
+}
+
+function UpdateBanner() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    window.electronAPI?.onUpdateReady?.(() => setShow(true));
+  }, []);
+
+  if (!show) return null;
+
+  return (
+    <div className="update-banner">
+      <div className="update-banner-text">
+        <span className="update-dot" />
+        <span className="update-label">Update ready</span>
+        <span className="update-sub">A new version has been downloaded.</span>
+      </div>
+      <div className="update-actions">
+        <button className="update-btn-later" onClick={() => setShow(false)}>Later</button>
+        <button className="update-btn-restart" onClick={() => window.electronAPI?.restartAndUpdate()}>
+          Restart &amp; Update
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,100 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+/* ── Update banner ── */
+.update-banner {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 18px 14px 20px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.15);
+  white-space: nowrap;
+  animation: banner-up 0.24s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes banner-up {
+  from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.update-banner-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.update-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #818cf8;
+  flex-shrink: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.update-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.update-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.update-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 4px;
+}
+
+.update-btn-later {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.update-btn-later:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.update-btn-restart {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+  transition: opacity 0.12s, transform 0.1s;
+}
+
+.update-btn-restart:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
 /* ── Auto-hide title bar ── */
 .titlebar-trigger {
   position: fixed;

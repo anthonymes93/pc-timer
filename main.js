@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, dialog, ipcMain, Menu } = require("electron");
+const { app, BrowserWindow, screen, ipcMain, Menu } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const { db, doc, onSnapshot } = require("./firebase");
 const path = require("path");
@@ -236,22 +236,13 @@ function setupFirebaseSettings() {
 }
 
 function setupUpdater() {
+  autoUpdater.autoDownload = true;
+
   autoUpdater.on("update-downloaded", () => {
-    dialog
-      .showMessageBox({
-        type: "info",
-        title: "Update Ready",
-        message: "A new version of PC Timer has been downloaded.",
-        buttons: ["Update now and restart", "Later"]
-      })
-      .then((result) => {
-        if (result.response === 0) {
-          autoUpdater.quitAndInstall();
-        }
-      });
+    controlPanelWindow?.webContents.send("update-ready");
   });
 
-  autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+  autoUpdater.checkForUpdates().catch(() => {});
 }
 
 app.whenReady().then(() => {
@@ -263,6 +254,7 @@ app.whenReady().then(() => {
     else controlPanelWindow?.maximize();
   });
   ipcMain.on("window-close", () => controlPanelWindow?.close());
+  ipcMain.on("restart-and-update", () => autoUpdater.quitAndInstall(true, true));
 
   openControlPanel();
   setupFirebaseSettings();
