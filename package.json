@@ -1,6 +1,6 @@
 {
   "name": "pc-timer",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "20 minute PC timer",
   "main": "main.js",
   "author": "Anthony Meszaros",
