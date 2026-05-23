@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { initializeApp } from "firebase/app";
 import {
   getFirestore,
@@ -55,6 +55,7 @@ export default function App() {
 
   return (
     <div className="page">
+      <TitleBar />
       <div className="container">
         <div className="header">
           <div>
@@ -197,5 +198,63 @@ function TextArea({ label, value, onChange }) {
         className="field-textarea"
       />
     </div>
+  );
+}
+
+function TitleBar() {
+  const [visible, setVisible] = useState(false);
+  const hideTimer = useRef(null);
+
+  function show() {
+    clearTimeout(hideTimer.current);
+    setVisible(true);
+  }
+
+  function hide() {
+    hideTimer.current = setTimeout(() => setVisible(false), 300);
+  }
+
+  return (
+    <>
+      <div className="titlebar-trigger" onMouseEnter={show} />
+      <div
+        className={`titlebar${visible ? " titlebar--visible" : ""}`}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+      >
+        <div className="titlebar-drag">
+          <span className="titlebar-name">PC Timer</span>
+        </div>
+        <div className="titlebar-controls">
+          <button
+            className="tb-btn tb-minimize"
+            onClick={() => window.electronAPI?.minimize()}
+            title="Minimize"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="3" y="7.25" width="10" height="1.5" rx="0.75" fill="currentColor" />
+            </svg>
+          </button>
+          <button
+            className="tb-btn tb-maximize"
+            onClick={() => window.electronAPI?.maximize()}
+            title="Maximize / Restore"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="3" y="3" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </button>
+          <button
+            className="tb-btn tb-close"
+            onClick={() => window.electronAPI?.close()}
+            title="Close"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </>
   );
 }

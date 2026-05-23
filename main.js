@@ -1,6 +1,7 @@
-const { app, BrowserWindow, screen, dialog } = require("electron");
+const { app, BrowserWindow, screen, dialog, ipcMain, Menu } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const { db, doc, onSnapshot } = require("./firebase");
+const path = require("path");
 
 let popupWindows = [];
 let controlPanelWindow;
@@ -29,10 +30,12 @@ function openControlPanel() {
   controlPanelWindow = new BrowserWindow({
     width: 1100,
     height: 900,
-    backgroundColor: "#0f172a",
+    frame: false,
+    backgroundColor: "#020617",
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      preload: path.join(__dirname, "preload.js")
     }
   });
 
@@ -252,6 +255,15 @@ function setupUpdater() {
 }
 
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
+
+  ipcMain.on("window-minimize", () => controlPanelWindow?.minimize());
+  ipcMain.on("window-maximize", () => {
+    if (controlPanelWindow?.isMaximized()) controlPanelWindow.unmaximize();
+    else controlPanelWindow?.maximize();
+  });
+  ipcMain.on("window-close", () => controlPanelWindow?.close());
+
   openControlPanel();
   setupFirebaseSettings();
   setupUpdater();

@@ -1,5 +1,90 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+/* ── Auto-hide title bar ── */
+.titlebar-trigger {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  z-index: 10000;
+}
+
+.titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 42px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 0 18px;
+  background: rgba(2, 6, 23, 0.88);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: none;
+}
+
+.titlebar--visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.titlebar-drag {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  -webkit-app-region: drag;
+  cursor: default;
+}
+
+.titlebar-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.titlebar-controls {
+  display: flex;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+}
+
+.tb-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+  padding: 0;
+}
+
+.tb-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tb-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
 .page {
   min-height: 100vh;
   background:
