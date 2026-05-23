@@ -36,6 +36,7 @@ function openControlPanel() {
     }
   });
 
+  controlPanelWindow.maximize();
   controlPanelWindow.loadURL(DASHBOARD_URL);
 }
 

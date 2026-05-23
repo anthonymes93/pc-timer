@@ -6,6 +6,7 @@ import {
   onSnapshot,
   updateDoc
 } from "firebase/firestore";
+import "./App.css";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCO3VDNkgPXqBR3mDSeWZucuptY7pzPGGM",
@@ -31,14 +32,14 @@ export default function App() {
     stopMessage: "",
     showTestOnOpen: false
   });
-
   const [saving, setSaving] = useState(false);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     const unsub = onSnapshot(settingsRef, (snapshot) => {
       if (snapshot.exists()) setSettings(snapshot.data());
+      setConnected(true);
     });
-
     return () => unsub();
   }, []);
 
@@ -46,89 +47,127 @@ export default function App() {
     setSaving(true);
     await updateDoc(settingsRef, settings);
     setSaving(false);
-    alert("Settings saved.");
   }
 
   function updateField(field, value) {
-    setSettings((prev) => ({
-      ...prev,
-      [field]: value
-    }));
+    setSettings((prev) => ({ ...prev, [field]: value }));
   }
 
   return (
-    <div style={styles.page}>
-      <div style={styles.container}>
-        <h1 style={styles.title}>PC Timer Dashboard234</h1>
-        <p style={styles.subtitle}>
-          Control your Electron popup timer from anywhere.
-        </p>
+    <div className="page">
+      <div className="container">
+        <div className="header">
+          <div>
+            <div className="overline">Configuration</div>
+            <h1 className="title">PC Timer Dashboard</h1>
+            <p className="subtitle">Control your Electron popup timer from anywhere.</p>
+          </div>
+          <div className={`live-badge${connected ? " connected" : ""}`}>
+            <span className="live-dot" />
+            {connected ? "Live" : "Connecting…"}
+          </div>
+        </div>
 
-        <div style={styles.card}>
-          <label style={styles.checkboxRow}>
-            <input
-              type="checkbox"
-              checked={!!settings.enabled}
-              onChange={(e) => updateField("enabled", e.target.checked)}
-            />
-            Timer Enabled
-          </label>
+        <div className="card">
+          <div className="section">
+            <div className="section-title">General</div>
+            <div className="toggles">
+              <Toggle
+                label="Timer Enabled"
+                description="Activate the popup schedule"
+                checked={!!settings.enabled}
+                onChange={(v) => updateField("enabled", v)}
+              />
+              <Toggle
+                label="Show Test Popup on Open"
+                description="Display a test notification when the app launches"
+                checked={!!settings.showTestOnOpen}
+                onChange={(v) => updateField("showTestOnOpen", v)}
+              />
+            </div>
+          </div>
 
-          <label style={styles.checkboxRow}>
-            <input
-              type="checkbox"
-              checked={!!settings.showTestOnOpen}
-              onChange={(e) =>
-                updateField("showTestOnOpen", e.target.checked)
-              }
-            />
-            Show test popup on app open
-          </label>
+          <div className="divider" />
 
-          <div style={styles.grid}>
+          <div className="section">
+            <div className="section-title">Schedule</div>
+            <div className="grid">
+              <Field
+                label="Start Minute"
+                type="number"
+                value={settings.startMinute}
+                onChange={(v) => updateField("startMinute", Number(v))}
+              />
+              <Field
+                label="Stop Minute"
+                type="number"
+                value={settings.stopMinute}
+                onChange={(v) => updateField("stopMinute", Number(v))}
+              />
+            </div>
+          </div>
+
+          <div className="divider" />
+
+          <div className="section">
+            <div className="section-title">Start Popup</div>
             <Field
-              label="Start Minute"
-              type="number"
-              value={settings.startMinute}
-              onChange={(v) => updateField("startMinute", Number(v))}
+              label="Title"
+              value={settings.startTitle}
+              onChange={(v) => updateField("startTitle", v)}
             />
-
-            <Field
-              label="Stop Minute"
-              type="number"
-              value={settings.stopMinute}
-              onChange={(v) => updateField("stopMinute", Number(v))}
+            <TextArea
+              label="Message"
+              value={settings.startMessage}
+              onChange={(v) => updateField("startMessage", v)}
             />
           </div>
 
-          <Field
-            label="Start Title"
-            value={settings.startTitle}
-            onChange={(v) => updateField("startTitle", v)}
-          />
+          <div className="divider" />
 
-          <TextArea
-            label="Start Message"
-            value={settings.startMessage}
-            onChange={(v) => updateField("startMessage", v)}
-          />
+          <div className="section">
+            <div className="section-title">Stop Popup</div>
+            <Field
+              label="Title"
+              value={settings.stopTitle}
+              onChange={(v) => updateField("stopTitle", v)}
+            />
+            <TextArea
+              label="Message"
+              value={settings.stopMessage}
+              onChange={(v) => updateField("stopMessage", v)}
+            />
+          </div>
 
-          <Field
-            label="Stop Title"
-            value={settings.stopTitle}
-            onChange={(v) => updateField("stopTitle", v)}
-          />
-
-          <TextArea
-            label="Stop Message"
-            value={settings.stopMessage}
-            onChange={(v) => updateField("stopMessage", v)}
-          />
-
-          <button style={styles.button} onClick={saveSettings}>
-            {saving ? "Saving..." : "Save Settings"}
-          </button>
+          <div className="save-row">
+            <button
+              className={`save-btn${saving ? " saving" : ""}`}
+              onClick={saveSettings}
+              disabled={saving}
+            >
+              {saving ? (
+                <>
+                  <span className="spinner" />
+                  Saving…
+                </>
+              ) : "Save Settings"}
+            </button>
+          </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function Toggle({ label, description, checked, onChange }) {
+  return (
+    <div className="toggle-row" onClick={() => onChange(!checked)}>
+      <div className="toggle-text">
+        <span className="toggle-label-text">{label}</span>
+        {description && <span className="toggle-desc">{description}</span>}
+      </div>
+      <div className={`toggle-track${checked ? " on" : ""}`}>
+        <div className="toggle-thumb" />
       </div>
     </div>
   );
@@ -136,13 +175,13 @@ export default function App() {
 
 function Field({ label, value, onChange, type = "text" }) {
   return (
-    <div style={styles.field}>
-      <label style={styles.label}>{label}</label>
+    <div className="field">
+      <label className="field-label">{label}</label>
       <input
         type={type}
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        style={styles.input}
+        className="field-input"
       />
     </div>
   );
@@ -150,95 +189,13 @@ function Field({ label, value, onChange, type = "text" }) {
 
 function TextArea({ label, value, onChange }) {
   return (
-    <div style={styles.field}>
-      <label style={styles.label}>{label}</label>
+    <div className="field">
+      <label className="field-label">{label}</label>
       <textarea
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        style={styles.textarea}
+        className="field-textarea"
       />
     </div>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background:
-      "radial-gradient(circle at top left, rgba(99,102,241,.25), transparent 35%), linear-gradient(135deg,#020617,#111827)",
-    color: "white",
-    fontFamily: "Arial, sans-serif",
-    padding: 24
-  },
-  container: {
-    maxWidth: 850,
-    margin: "0 auto"
-  },
-  title: {
-    fontSize: 42,
-    marginBottom: 8
-  },
-  subtitle: {
-    color: "rgba(255,255,255,.65)",
-    marginBottom: 28
-  },
-  card: {
-    background: "rgba(255,255,255,.08)",
-    border: "1px solid rgba(255,255,255,.12)",
-    borderRadius: 24,
-    padding: 28,
-    boxShadow: "0 30px 80px rgba(0,0,0,.35)"
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: 18
-  },
-  field: {
-    marginBottom: 18
-  },
-  label: {
-    display: "block",
-    marginBottom: 8,
-    fontWeight: 700
-  },
-  input: {
-    width: "100%",
-    boxSizing: "border-box",
-    padding: 14,
-    borderRadius: 12,
-    border: "none",
-    background: "#1e293b",
-    color: "white",
-    fontSize: 16
-  },
-  textarea: {
-    width: "100%",
-    boxSizing: "border-box",
-    padding: 14,
-    borderRadius: 12,
-    border: "none",
-    background: "#1e293b",
-    color: "white",
-    fontSize: 16,
-    minHeight: 110,
-    resize: "vertical"
-  },
-  checkboxRow: {
-    display: "flex",
-    gap: 12,
-    alignItems: "center",
-    marginBottom: 18,
-    fontWeight: 700
-  },
-  button: {
-    border: "none",
-    borderRadius: 999,
-    padding: "16px 26px",
-    background: "white",
-    color: "#020617",
-    fontWeight: 800,
-    fontSize: 16,
-    cursor: "pointer"
-  }
-};
