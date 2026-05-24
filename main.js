@@ -6,7 +6,6 @@ const path = require("path");
 let popupWindows = [];
 let controlPanelWindow;
 let lastTriggered = "";
-let isClosingAll = false;
 
 const DASHBOARD_URL = "http://localhost:5174/";
 
@@ -18,7 +17,9 @@ let settings = {
   startMessage: "You have 20 minutes. Use the computer intentionally.",
   stopTitle: "STOP COMPUTER TIME",
   stopMessage: "Step away now. Protect your focus and reset.",
-  showTestOnOpen: false
+  showTestOnOpen: false,
+  workDayStart: 9,
+  workDayEnd: 18
 };
 
 function openControlPanel() {
@@ -44,23 +45,13 @@ function openControlPanel() {
 }
 
 function closeAllPopups() {
-  if (isClosingAll) return;
-
-  isClosingAll = true;
-
-  const windows = [...popupWindows];
-  popupWindows = [];
-
-  windows.forEach((win) => {
-    if (win && !win.isDestroyed()) {
-      win.destroy();
-    }
-  });
-
-  isClosingAll = false;
+  const windows = popupWindows.splice(0);
+  for (const win of windows) {
+    if (!win.isDestroyed()) win.destroy();
+  }
 }
 
-function createFullscreenPopup(display, screenNumber, message, subtitle) {
+function createFullscreenPopup(display, screenNumber, message, subtitle, theme = "dark") {
   const bounds = display.bounds;
 
   const win = new BrowserWindow({
@@ -90,17 +81,26 @@ function createFullscreenPopup(display, screenNumber, message, subtitle) {
   win.setAlwaysOnTop(true, "screen-saver");
 
   win.on("closed", () => {
-    if (!isClosingAll) closeAllPopups();
+    popupWindows = popupWindows.filter(w => w !== win);
+    closeAllPopups();
   });
+
+  const bgStyle = theme === "green"
+    ? `radial-gradient(circle at top left, rgba(34,197,94,0.32), transparent 34%),
+       radial-gradient(circle at bottom right, rgba(16,185,129,0.25), transparent 38%),
+       linear-gradient(135deg, #022c1a, #064e3b)`
+    : `radial-gradient(circle at top left, rgba(99,102,241,0.28), transparent 34%),
+       radial-gradient(circle at bottom right, rgba(14,165,233,0.22), transparent 38%),
+       linear-gradient(135deg, #020617, #111827)`;
+
+  const btnColor = theme === "green" ? "#022c1a" : "#020617";
+  const iconEmoji = theme === "green" ? "🎉" : "⏱️";
 
   const html = `
     <html>
       <body style="
         margin:0;width:100vw;height:100vh;overflow:hidden;
-        background:
-          radial-gradient(circle at top left, rgba(99,102,241,0.28), transparent 34%),
-          radial-gradient(circle at bottom right, rgba(14,165,233,0.22), transparent 38%),
-          linear-gradient(135deg, #020617, #111827);
+        background: ${bgStyle};
         color:white;
         font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
         display:flex;align-items:center;justify-content:center;
@@ -130,7 +130,7 @@ function createFullscreenPopup(display, screenNumber, message, subtitle) {
             Screen ${screenNumber}
           </div>
 
-          <div style="font-size:62px;margin-bottom:18px;">⏱️</div>
+          <div style="font-size:62px;margin-bottom:18px;">${iconEmoji}</div>
 
           <h1 style="
             margin:0 0 14px;
@@ -151,12 +151,12 @@ function createFullscreenPopup(display, screenNumber, message, subtitle) {
             ${subtitle}
           </p>
 
-          <button onclick="window.close()" style="
+          <button onclick="require('electron').ipcRenderer.send('close-all-popups')" style="
             border:none;
             border-radius:999px;
             padding:18px 34px;
             background:white;
-            color:#020617;
+            color:${btnColor};
             font-size:17px;
             font-weight:900;
             cursor:pointer;
@@ -181,12 +181,20 @@ function createFullscreenPopup(display, screenNumber, message, subtitle) {
   popupWindows.push(win);
 }
 
-function showPopupsOnAllScreens(message, subtitle) {
+function showPopupsOnAllScreens(message, subtitle, theme = "dark") {
   closeAllPopups();
 
   screen.getAllDisplays().forEach((display, index) => {
-    createFullscreenPopup(display, index + 1, message, subtitle);
+    createFullscreenPopup(display, index + 1, message, subtitle, theme);
   });
+}
+
+function showWorkDayEndPopup() {
+  showPopupsOnAllScreens(
+    "Work Day Is Over",
+    "Have fun for the rest of the day!",
+    "green"
+  );
 }
 
 function checkTime() {
@@ -197,10 +205,20 @@ function checkTime() {
   const hour = now.getHours();
   const triggerKey = `${hour}:${minutes}`;
 
-  if (
-    (minutes === settings.startMinute || minutes === settings.stopMinute) &&
-    lastTriggered !== triggerKey
-  ) {
+  if (lastTriggered === triggerKey) return;
+
+  // End-of-work-day popup at exactly workDayEnd hour on the hour
+  if (hour === settings.workDayEnd && minutes === 0) {
+    lastTriggered = triggerKey;
+    showWorkDayEndPopup();
+    return;
+  }
+
+  // Regular timers only fire during work hours
+  const inWorkHours = hour >= settings.workDayStart && hour < settings.workDayEnd;
+  if (!inWorkHours) return;
+
+  if (minutes === settings.startMinute || minutes === settings.stopMinute) {
     lastTriggered = triggerKey;
 
     if (minutes === settings.startMinute) {
@@ -248,6 +266,7 @@ function setupUpdater() {
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
 
+  ipcMain.on("close-all-popups", () => closeAllPopups());
   ipcMain.on("window-minimize", () => controlPanelWindow?.minimize());
   ipcMain.on("window-maximize", () => {
     if (controlPanelWindow?.isMaximized()) controlPanelWindow.unmaximize();

@@ -30,7 +30,9 @@ export default function App() {
     startMessage: "",
     stopTitle: "",
     stopMessage: "",
-    showTestOnOpen: false
+    showTestOnOpen: false,
+    workDayStart: 9,
+    workDayEnd: 18
   });
   const [saving, setSaving] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -139,6 +141,29 @@ export default function App() {
               value={settings.stopMessage}
               onChange={(v) => updateField("stopMessage", v)}
             />
+          </div>
+
+          <div className="divider" />
+
+          <div className="section">
+            <div className="section-title">Work Hours</div>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", margin: "0 0 16px", lineHeight: "1.5" }}>
+              Timers only fire between these hours. At the end hour a green "Work Day Is Over" popup appears automatically.
+            </p>
+            <div className="grid">
+              <Field
+                label="Start Hour (0–23)"
+                type="number"
+                value={settings.workDayStart}
+                onChange={(v) => updateField("workDayStart", Number(v))}
+              />
+              <Field
+                label="End Hour (0–23)"
+                type="number"
+                value={settings.workDayEnd}
+                onChange={(v) => updateField("workDayEnd", Number(v))}
+              />
+            </div>
           </div>
 
           <div className="save-row">
