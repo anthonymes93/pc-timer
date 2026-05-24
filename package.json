@@ -6,7 +6,8 @@
   "author": "Anthony Meszaros",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build:dashboard": "cd pc-timer-dashboard\\dashboard && npm run build",
+    "build": "npm run build:dashboard && electron-builder"
   },
   "dependencies": {
     "electron-updater": "^6.6.2",
@@ -21,6 +22,7 @@
     "productName": "PC Timer",
     "files": [
       "**/*",
+      "!pc-timer-dashboard{,/**}",
       "!out{,/**}",
       "!release{,/**}",
       "!release*{,/**}",

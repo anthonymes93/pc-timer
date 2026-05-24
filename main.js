@@ -7,7 +7,9 @@ let popupWindows = [];
 let controlPanelWindow;
 let lastTriggered = "";
 
-const DASHBOARD_URL = "http://localhost:5174/";
+const DASHBOARD_URL = app.isPackaged
+  ? `file://${path.join(__dirname, "dashboard-dist", "index.html")}`
+  : "http://localhost:5174/";
 
 let settings = {
   enabled: true,
@@ -225,7 +227,11 @@ function checkTime() {
       showPopupsOnAllScreens(settings.startTitle, settings.startMessage);
     }
 
-    if (minutes === settings.stopMinute) {
+    // Don't fire stop at workDayStart:stopMinute when stopMinute comes before
+    // startMinute — no session has happened yet at that point in the first hour
+    const stopIsAfterStartInHour = settings.stopMinute > settings.startMinute;
+    const pastFirstHour = hour > settings.workDayStart;
+    if (minutes === settings.stopMinute && (pastFirstHour || stopIsAfterStartInHour)) {
       showPopupsOnAllScreens(settings.stopTitle, settings.stopMessage);
     }
   }
